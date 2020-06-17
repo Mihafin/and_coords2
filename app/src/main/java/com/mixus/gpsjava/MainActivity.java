@@ -1,16 +1,10 @@
 package com.mixus.gpsjava;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.location.GnssStatus;
-import android.location.GpsSatellite;
-import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,10 +12,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
-import org.jetbrains.annotations.NotNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import java.util.Locale;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     private static final String TAG = "MainActivity";
@@ -175,11 +169,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onProviderEnabled(String s) {
-        Log.d(TAG, "onProviderEnabled");
+        Log.d(TAG, "onProviderEnabled: " + s);
     }
 
     @Override
     public void onProviderDisabled(String s) {
-        Log.d(TAG, "onProviderDisabled");
+        Log.d(TAG, "onProviderDisabled: " + s);
     }
 }
