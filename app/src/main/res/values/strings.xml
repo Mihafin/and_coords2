@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">GpsJava</string>
+    <string name="no_permisions">No permisions!</string>
+    <string name="detect_in_process">Detect your place...</string>
+    <string name="find_satellites">Find satellites...</string>
 </resources>
