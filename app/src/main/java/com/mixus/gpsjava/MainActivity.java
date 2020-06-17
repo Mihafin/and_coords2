@@ -9,6 +9,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.GnssStatus;
+import android.location.GpsSatellite;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -16,7 +18,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Locale;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
     private static final String TAG = "MainActivity";
@@ -24,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private TextView lblInfo;
     private TextView lblSatelliteCount;
+
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @SuppressLint("MissingPermission")
     private void startApp() {
-        LocationManager locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
 
         boolean isGPSEnabled     = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);    // getting GPS satellite status
         boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);// getting cellular network status
@@ -52,13 +59,33 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         this.lblInfo.setText(R.string.detect_in_process);
         this.lblSatelliteCount.setText(R.string.find_satellites);
 
-        GnssStatus.Callback gnssStatusCallback = new GnssStatus.Callback() {
-            public void onSatelliteStatusChanged(GnssStatus status) {
-                Log.d(TAG, String.format("onSatelliteStatusChanged: %d", status.getSatelliteCount()));
-                lblSatelliteCount.setText(String.format(Locale.ENGLISH, "Satellites count: %d", status.getSatelliteCount()));
-            }
-        };
-        locationManager.registerGnssStatusCallback(gnssStatusCallback);
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+//            GnssStatus.Callback gnssStatusCallback = new GnssStatus.Callback() {
+//                @Override
+//                public void onSatelliteStatusChanged(@NotNull GnssStatus status) {
+//                    Log.d(TAG, String.format("onSatelliteStatusChanged: %d", status.getSatelliteCount()));
+//                    lblSatelliteCount.setText(String.format(Locale.ENGLISH, "Satellites count(1): %d", status.getSatelliteCount()));
+//                }
+//            };
+//            locationManager.registerGnssStatusCallback(gnssStatusCallback);
+//        }
+//        else
+//        {
+//            GpsStatus.Listener gpsListener = new GpsStatus.Listener() {
+//                @Override
+//                public void onGpsStatusChanged(int i) {
+//                    Log.d(TAG, String.format("onGpsStatusChanged: %d", i));
+//
+//                    GpsStatus gpsStatus = locationManager.getGpsStatus(null);
+//
+//                    lblSatelliteCount.setText(String.format(Locale.ENGLISH,
+//                            "Satellites count(2): %d - %d",
+//                            i, gpsStatus != null ? gpsStatus.getMaxSatellites() : -1));
+//
+//                }
+//            };
+//            locationManager.removeGpsStatusListener(gpsListener);
+//        }
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, this);
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
 
@@ -111,15 +138,34 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         ActivityCompat.requestPermissions(this, new String[]{permissionName}, permissionRequestCode);
     }
 
-    @SuppressLint("MissingPermission")
     @Override
     public void onLocationChanged(Location location) { //<9>
-        Log.d(TAG, "onLocationChanged with location " + location.toString());
+        Log.d(TAG, ">>>>> onLocationChanged with location " + location.toString());
 
         String text = String.format(Locale.ENGLISH,
                 "Lat:\t %f\nLong:\t %f\nAlt:\t %f\nBearing:\t %f", location.getLatitude(),
                 location.getLongitude(), location.getAltitude(), location.getBearing());
         this.lblInfo.setText(text);
+
+        String provider = location.getProvider();
+        if (provider.equals(LocationManager.GPS_PROVIDER)) {
+            Bundle extras = location.getExtras();
+//            Set<String> keys = extras.keySet();
+//            Log.d(TAG,"bundle keys: ");
+//            for (String key: keys) {
+//                Object obj = extras.get(key);
+//                if (obj != null)
+//                    Log.d(TAG, String.format(Locale.ENGLISH, "%s: %s", key, obj.toString()));
+//            }
+//            Log.d(TAG,"-------");
+            int satellitesCount = extras.getInt("satellites");
+            int satellitesMaxCount = extras.getInt("maxCn0");
+            int satellitesMeanCount = extras.getInt("meanCn0");
+
+            lblSatelliteCount.setText(String.format(Locale.ENGLISH,
+                    "satellites: %d (max: %d, mean: %d) ",
+                    satellitesCount, satellitesMaxCount, satellitesMeanCount));
+        }
     }
 
     @Override
